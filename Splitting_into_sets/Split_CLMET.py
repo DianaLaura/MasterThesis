@@ -57,15 +57,21 @@ def main(args):
     for file in os.listdir(plain_docs):
         #extract information from xml
         filename = os.fsdecode(os.path.join(plain_docs,file))
-        print(filename)
+        print("Current file: " + filename)
         
-        infile = open(filename, 'r')
-        xml = infile.read()
-        infile.close()
-        doc = et.fromstring(re.sub(r"(<\?xml[^>]+\?>)", r"\1<root>", xml) + "</root>")
-        
-
-        root = doc.getroot()
+        with open(filename,encoding='utf8') as infile:
+            xml = infile.read()
+        try:
+            doc = et.fromstring("<root>" + xml + "</root>")
+            print("File succesfully parsed!")
+        except et.ParseError:
+            print("Parse Error!")
+            continue
+        try:
+            root = doc.getroot()
+        except AttributeError:
+            print("Root not found!")
+            continue
         file_title = doc.get('file')
         file_id = doc.get('id')
         period = doc.get('period') 
