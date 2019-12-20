@@ -49,7 +49,9 @@ def save_as_csv(dataframe, output_dir):
 
 def main(args):
     plain_docs = args.input + "/plain"
+    pos_docs = args.input + "/pos"
     output_dir = os.path.join(args.input, args.output) + ".csv"
+    pos_available = False
 
     sent_counter = 0
 
@@ -59,7 +61,7 @@ def main(args):
         
         #extract information from xml
         filename = os.fsdecode(os.path.join(plain_docs,file))
-        
+        pos_file = os.fsdecode(os.path.join(pos_docs, file))
         try:
             infile = open(filename)
             doc = Soup(infile.read(), "lxml")
@@ -84,21 +86,46 @@ def main(args):
         notes = doc.find('notes')
         source = doc.find('source')
         comments = doc.find('comments')
-        body = doc.find('text')
-        text = body.text
+        plain_body = doc.find('text')
+        
 
-        #split text into sentences with NLTK sent_tokenize
+        #split text into sentences by using the <p> tag in the corpus
 
-        text = sent_tokenize(text)
+        plain_sents = plain_body.find_all('p')
 
         print('File tokenized!')
 
+        #load pos file if available
+        try:
+            infile=open(pos_file)
+            pos_doc = Soup(infile.read(),"lxml")
+            infile.close
+
+            pos_body = pos_doc.find('text')
+            pos_sents = pos_body.find_all('p')
+
+            pos_available = True
+        except FileNotFoundError:
+            pos_available = False
+
+
         #load sentences and text into pandas data frame
 
-        for sent in range(0,len(text)):
+        for sent in range(0,len(plain_body)):
             sent_counter += 1
-            sentence= text[sent]
-            new_row = pd.DataFrame([[sent_counter, sentence, 'Sent_class', 'Sent_pos', file_title.text, file_id.text, period.text, quartcent.text, decade.text, year.text, genre.text, subgenre.text, title.text, author.text, gender.text, author_birth.text, notes.text, source.text, comments.text]], columns = ['Sent_ID','Sent_plain','Sent_class','Sent_pos','File','File_ID','Period','Quartcent', 'Decade', 'Year','Genre','Subgenre','Title','Author','Gender','Author_birth','Notes','Source','Comments' ])
+            try:
+                sentence= plain_sents[sent].text
+            except IndexError:
+                break
+            if pos_available:
+                try:
+                    pos_sent = pos_sents[sent].text
+                except IndexError:
+                    pos_sent = None
+            else:
+                pos_sent = None
+
+            new_row = pd.DataFrame([[sent_counter, sentence, 'Sent_class', pos_sent, file_title.text, file_id.text, period.text, quartcent.text, decade.text, year.text, genre.text, subgenre.text, title.text, author.text, gender.text, author_birth.text, notes.text, source.text, comments.text]], columns = ['Sent_ID','Sent_plain','Sent_class','Sent_pos','File','File_ID','Period','Quartcent', 'Decade', 'Year','Genre','Subgenre','Title','Author','Gender','Author_birth','Notes','Source','Comments' ])
             data = data.append(new_row)
             
 
