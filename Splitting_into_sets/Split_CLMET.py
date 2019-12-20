@@ -1,5 +1,5 @@
 import pandas as pd
-import xml.etree.ElementTree as et
+from bs4 import BeautifulSoup as Soup
 import argparse
 import os
 import re
@@ -44,63 +44,71 @@ def save_as_csv(dataframe, output_dir):
     #that the program iterates over more files after completing the test run.
 
     dataframe.to_csv(output_dir, sep = ';')
+    print('Program finished! CSV-File under ' + output_dir)
     exit()
 
 def main(args):
     plain_docs = os.fsencode(args.input) #os.fsencode(os.path.join(args.input, "/plain"))
-    output_dir = args.output
+    output_dir = os.path.join(args.input, args.output) + ".csv"
 
     sent_counter = 0
 
     data = pd.DataFrame(columns = ['Sent_ID','Sent_plain','Sent_class','Sent_pos','File','File_ID','Period','Quartcent', 'Decade', 'Year','Genre','Subgenre','Title','Author','Gender','Author_birth','Notes','Source','Comments' ])
     
     for file in os.listdir(plain_docs):
+        
         #extract information from xml
         filename = os.fsdecode(os.path.join(plain_docs,file))
         print("Current file: " + filename)
         
-        with open(filename,encoding='utf8') as infile:
-            xml = infile.read()
         try:
-            doc = et.fromstring("<root>" + xml + "</root>")
-            print("File succesfully parsed!")
-        except et.ParseError:
-            print("Parse Error!")
-            continue
-        try:
-            root = doc.getroot()
-        except AttributeError:
-            print("Root not found!")
-            continue
-        file_title = doc.get('file')
-        file_id = doc.get('id')
-        period = doc.get('period') 
-        quartcent = doc.get('quartcent')
-        decade = doc.get('decade')
-        year = doc.get('year')
-        genre = doc.get('genre')
-        subgenre = doc.get('subgenre')
-        title = doc.get('title')
-        author = doc.get('author')
-        gender = doc.get('gender')
-        author_birth = doc.get('author_birth')
-        notes = doc.get('notes')
-        source = doc.get('source')
-        comments = doc.get('comments')
-        text = doc.get('text')
+            infile = open(filename)
+            doc = Soup(infile.read())
+            infile.close()
+        except UnicodeDecodeError:
+            continue #There are some .DS_store files in this folder
+
+        print('File succesfully read!')
+
+        file_title = doc.find('file')
+        file_id = doc.find('id')
+        period = doc.find('period') 
+        quartcent = doc.find('quartcent')
+        decade = doc.find('decade')
+        year = doc.find('year')
+        genre = doc.find('genre')
+        subgenre = doc.find('subgenre')
+        title = doc.find('title')
+        author = doc.find('author')
+        gender = doc.find('gender')
+        author_birth = doc.find('author_birth')
+        notes = doc.find('notes')
+        source = doc.find('source')
+        comments = doc.find('comments')
+        body = doc.find('text')
+        text = body.text
 
         #split text into sentences with NLTK sent_tokenize
 
         text = sent_tokenize(text)
 
+        print('File tokenized!')
+
         #load sentences and text into pandas data frame
 
         for sent in range(0,len(text)):
-            data.loc[i] = [str(sent)+'_'+ str(file_id)] + text[sent] + 'Sent_class' + 'Sent_pos' + file_title + file_id + period + quartcent + decade + year + genre + subgenre + title + author + gender + author_birth + notes + source + comments
             sent_counter += 1
+            sentence= text[sent]
+            new_row = pd.DataFrame([[sent_counter, sentence, 'Sent_class', 'Sent_pos', file_title.text, file_id.text, period.text, quartcent.text, decade.text, year.text, genre.text, subgenre.text, title.text, author.text, gender.text, author_birth.text, notes.text, source.text, comments.text]], columns = ['Sent_ID','Sent_plain','Sent_class','Sent_pos','File','File_ID','Period','Quartcent', 'Decade', 'Year','Genre','Subgenre','Title','Author','Gender','Author_birth','Notes','Source','Comments' ])
+            data = data.append(new_row)
+            
 
-            if (args.testing==True) and sent_counter == 100:
-                save_as_csv(output_dir, data)
+        print('File loaded into dataframe!')
+        #condition for finishing during testing
+        if sent_counter >= 1:
+            save_as_csv(data, output_dir)
+
+    
                 
 
 
