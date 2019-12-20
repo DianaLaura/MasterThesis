@@ -48,7 +48,7 @@ def save_as_csv(dataframe, output_dir):
     exit()
 
 def main(args):
-    plain_docs = os.fsencode(args.input) #os.fsencode(os.path.join(args.input, "/plain"))
+    plain_docs = args.input + "/plain"
     output_dir = os.path.join(args.input, args.output) + ".csv"
 
     sent_counter = 0
@@ -59,16 +59,15 @@ def main(args):
         
         #extract information from xml
         filename = os.fsdecode(os.path.join(plain_docs,file))
-        print("Current file: " + filename)
         
         try:
             infile = open(filename)
-            doc = Soup(infile.read())
+            doc = Soup(infile.read(), "lxml")
             infile.close()
         except UnicodeDecodeError:
             continue #There are some .DS_store files in this folder
 
-        print('File succesfully read!')
+        print('File successfully read!')
 
         file_title = doc.find('file')
         file_id = doc.find('id')
