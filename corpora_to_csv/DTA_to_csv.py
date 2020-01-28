@@ -39,7 +39,7 @@ The following features are extracted from the DTA-Files (additionally to the tex
 def get_args():
     parser = argparse.ArgumentParser(description='Parsing arguments like input path, output path, ...')
     parser.add_argument("--input", required=True, type=str, help='Path to input directory')
-    parser.add_argument("--output", default='DTA_splitted_data', type=str, help='Path to output directory')
+    parser.add_argument("--output", default='DTA_data_frame', type=str, help='Path to output directory')
     parser.add_argument("--sentences", default = False , help='variable to enable/disable the tokenization into sentences')
     parser.add_argument("--testing", default=False, help='If set to true, only a small sample of DTA-documents is processed')
 
@@ -87,6 +87,7 @@ def main(args):
             doc = Soup(infile.read(), "lxml")
             infile.close()
         except UnicodeDecodeError:
+            error_list.append(file)
             continue #There are some .DS_store files in this folder
 
         try:
