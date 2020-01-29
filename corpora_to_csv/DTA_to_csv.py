@@ -12,8 +12,8 @@ extract just the document.
 
 The following features are extracted from the DTA-Files (additionally to the text):
 
- - Sentence_ID: generated, unique sentence ID (index of data frame)
- - Sentence
+ - ID: generated, unique ID (index of data frame)
+ - Text
  - Filename
  - DTA_File_ID
  - Title
@@ -88,7 +88,7 @@ def main(args):
             infile.close()
         except UnicodeDecodeError:
             error_list.append(file)
-            continue #There are some .DS_store files in this folder
+            continue
 
         try:
             #extract DTA File id
