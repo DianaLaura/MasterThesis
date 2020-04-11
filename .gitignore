@@ -1,0 +1,16 @@
+DataFrames_EDA/.~lock.CLMET_data_frame.csv#
+.DS_Store
+Masterarbeit.code-workspace
+DataFrames_EDA/ARCHER_data_frame.csv
+DataFrames_EDA/CLMET_data_frame.csv
+DataFrames_EDA/DTA_data_frame.csv
+
+DataFrames_EDA/EMEMT_DataFrame.csv
+DataFrames_EDA/GerManc_data_frame.csv
+DataFrames_EDA/LMEMT_DataFrame.csv
+DataFrames_EDA/RIDGES_DataFrame.csv
+
+Notebooks_Experiments/Selfwritten_modules/__pycache__/__init__.cpython-37.pyc
+Notebooks_Experiments/Selfwritten_modules/__pycache__/SklearnSubwordsTransformer.cpython-37.pyc
+Notebooks_Experiments/Selfwritten_modules/__pycache__/SubwordTransformer.cpython-37.pyc
+
