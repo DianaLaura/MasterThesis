@@ -3,13 +3,15 @@
 import re
 import collections
 from collections import defaultdict
+import numpy as np
 
 class SubwordTransformer:
 
   
-    def __init__(self, tokenizer=None):
+    def __init__(self, tokenizer=None, number_of_merges=10):
         self.vocab = defaultdict(int)
         self.tokenizer = tokenizer
+        self.number_of_merges = number of merges
     
 
     def __get_stats(self):
@@ -17,22 +19,30 @@ class SubwordTransformer:
         pairs = collections.defaultdict(int)
 
         for word, freq in self.vocab.items():
-            symbol = list(word)
-            for i in range (0, len(symbol) - 1):
-                pairs[symbol[i], symbol[i+1]] += freq
+
+            symbols = word.split(',')
+            
+            for i in range (0, len(symbols) - 1):
+                pairs[symbols[i], symbols[i+1]] += freq
         
         return pairs
 
-    def __merge_vocab(self, pair):
-    
-        bigram = re.escape(' '.join(pair))
-        print(bigram)
-        p = re.compile(r'(?<!\S)' + bigram + r'(?!\S)')
+    def __update_vocab(self, pair):
+
+        vocab_updated = defaultdict(int)
         for word in pair:
-            w_out = p.sub(''.join(pair), word)
+            w_out = str(pair[0] + pair[1])
+            pattern = str(pair[0] + r',' + pair[1])
+            print(pattern)
             print(w_out)
-            self.vocab[w_out] +=1
-        return self.vocab
+
+            for key in self.vocab.items():
+                
+                new_key = key[0].replace(pattern,w_out)
+                val = key[1]
+                vocab_updated[new_key] = val
+            
+            self.vocab = vocab_updated
     
     def bpe(self, data):
         #extract vocabulary from the data and store it in a dictionary with frequency counts
@@ -43,18 +53,27 @@ class SubwordTransformer:
             text = self.tokenizer(data[row])
             
             for word in text:
-                self.vocab[word] += 1
-            
+                word = word.strip()
+                charlist = list(word)
+                try:
+                    final_word = charlist[1]
+                    for item in  range(2, len(charlist)-1):
+                        final_word = final_word + ',' + charlist[item]
+                    
+                except IndexError:
+                    final_word = charlist[0]
 
-        num_merges = 1
+                self.vocab[final_word] += 1
+        
+        
 
-        for i in range(0, num_merges):
+        for i in range(0, self.number_of_merges):
             pairs = self.__get_stats()
             best = max(pairs, key=pairs.get)
-            self.vocab = self.__merge_vocab(best)
+            self.__update_vocab(best)
             
-            
-            
+        
+        
         return self.vocab
 
  
