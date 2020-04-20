@@ -4,6 +4,7 @@ import re
 import collections
 from collections import defaultdict
 import numpy as np
+from heapq import nlargest
 from sklearn.base import BaseEstimator, TransformerMixin
 
 class SubwordTransformer(BaseEstimator, TransformerMixin):
@@ -20,10 +21,11 @@ class SubwordTransformer(BaseEstimator, TransformerMixin):
     def get_subwords(self):
         return self.subwords
 
-    def __init__(self, tokenizer=None, number_of_merges=10):
+    def __init__(self, tokenizer=None, number_of_merges=10, n_best = 5):
         self.vocab = defaultdict(int)
         self.tokenizer = tokenizer
         self.number_of_merges = number_of_merges
+        self.n_best = n_best
     
 
     def __get_stats(self):
@@ -39,19 +41,19 @@ class SubwordTransformer(BaseEstimator, TransformerMixin):
         
         return pairs
 
-    def __update_vocab(self, pair, pairs):
+    def __update_vocab(self, best, pairs):
 
-        vocab_updated = defaultdict(int)
         
-            
-        w_out = str(pair[0] + pair[1])
-        pattern = str(pair[0] + r',' + pair[1])    
-        for key in self.vocab.items():
-            new_key = key[0].replace(pattern,w_out)
-            val = key[1]
-            vocab_updated[new_key] = val          
-                        
-        self.vocab = vocab_updated
+       
+        for i in range(0, len(best)):
+            vocab_updated = defaultdict(int)
+            w_out = str(best[i][0] + best[i][1])
+            pattern = str(best[i][0] + r',' + best[i][1])  
+            for key in self.vocab.items():
+                new_key = key[0].replace(pattern,w_out)
+                val = key[1]
+                vocab_updated[new_key] = val                 
+            self.vocab = vocab_updated
  
     def fit(self, X, y=None):
         for doc in X:
@@ -72,9 +74,10 @@ class SubwordTransformer(BaseEstimator, TransformerMixin):
            
         for i in range(0, self.number_of_merges):
             pairs = self.__get_stats()
-            best = max(pairs, key=pairs.get)
-            pair = str(best[0] + best[1])
-            self.subwords[pair] += pairs[best]
+            best = nlargest(self.n_best, pairs, key=pairs.get)
+            for i in range(0, len(best)):
+                pair = str(best[i][0] + best[i][1])
+                self.subwords[pair] += pairs[best[i]]
             self.__update_vocab(best, pairs)
         self.feature_names = list(self.subwords.keys())
         return self
