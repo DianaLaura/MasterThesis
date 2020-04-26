@@ -4,10 +4,11 @@ import argparse
 import os
 import re
 from nltk.tokenize import sent_tokenize
+from tqdm import tqdm
 
-""""This script splits the CLMET Corpus in a test-, train-, and validation set for performing
-data-driven analysis. The goal is to preserve as much information as possible while splitting
-the texts of the corpus into sentences.
+""""This script transforms files from the CLMET into a .csv-file. 
+The goal is to preserve as much information as possible while splitting.
+
 The output is a .csv-file that contains the following attributes 
 (derived from XML-tags):
 
@@ -71,7 +72,7 @@ def main(args):
 
     data = pd.DataFrame(columns = ['ID','Text','File','File_ID','Period','Quartcent', 'Decade', 'Year','Genre','Subgenre','Title','Author','Gender','Author_birth','Notes','Source','Comments' ])
     
-    for file in os.listdir(plain_docs):
+    for file in tqdm(os.listdir(plain_docs)):
         
         #extract information from xml
         filename = os.fsdecode(os.path.join(plain_docs,file))
@@ -105,7 +106,6 @@ def main(args):
             text = body.text
         
         except AttributeError:
-            print('Error: Could not find all attributes in the file' + file)
             error_list.append(file)
             continue
         
@@ -113,8 +113,6 @@ def main(args):
         #split text into sentences with NLTK sent_tokenize
         if sentences:
             text = sent_tokenize(text)
-
-            print('File tokenized!')
 
             #load sentences and text into pandas data frame
 
@@ -127,8 +125,6 @@ def main(args):
             sent_counter += 1
             new_row = pd.DataFrame([[sent_counter, text, file_title.text, file_id.text, period.text, quartcent.text, decade.text, year.text, genre.text, subgenre.text, title.text, author.text, gender.text, author_birth.text, notes.text, source.text, comments.text]], columns = ['ID','Text','File','File_ID','Period','Quartcent', 'Decade', 'Year','Genre','Subgenre','Title','Author','Gender','Author_birth','Notes','Source','Comments' ])
             data = data.append(new_row)
-
-        print('File loaded into dataframe!')
         #condition for finishing during testing
         if testing:
             save_as_csv(data, output_dir, error_list)

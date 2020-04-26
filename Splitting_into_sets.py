@@ -53,9 +53,8 @@ def main(args):
 
 
 
+    train , test = train_test_split(documents, test_size = 0.2, random_state = seed, stratify = documents[bin_var])
 
-
-    train , test = train_test_split(documents, test_size = 0.2, random_state = seed, stratify = documents[bin_var]  )
 
     train.to_csv(train_set, sep=';')
     test.to_csv(test_set, sep=';')
