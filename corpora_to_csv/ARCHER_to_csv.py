@@ -130,12 +130,17 @@ def main(args):
             continue
 
         #split text into sentences with NLTK sent_tokenize
-        body = doc.find('body').text
+        header = doc.find('body').find('text').find('teiheader').text
+
+
+        text = doc.find('body').text
+
+        text = text[len(header):]
 
 
 
         if sentences:
-            text = sent_tokenize(body)
+            text = sent_tokenize(text)
         
 
             print('File tokenized!')
