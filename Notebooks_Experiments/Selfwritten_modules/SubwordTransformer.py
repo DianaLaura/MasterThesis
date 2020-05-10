@@ -56,6 +56,9 @@ class SubwordTransformer(BaseEstimator, TransformerMixin):
             self.vocab = vocab_updated
  
     def fit(self, X, y=None):
+        self.subwords = collections.defaultdict(int)
+        self.occurrences = [[]]
+        self.feature_names = []
         for doc in X:
             text = self.tokenizer(doc)        
             for word in text:
