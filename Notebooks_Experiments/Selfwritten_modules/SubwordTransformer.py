@@ -70,7 +70,10 @@ class SubwordTransformer(BaseEstimator, TransformerMixin):
                         final_word = final_word + ',' + charlist[item]     
 
                 except IndexError:
-                    final_word = charlist[0]
+                    try:
+                        final_word = charlist[0]
+                    except IndexError:
+                        continue
 
                 self.vocab[final_word] += 1
             
